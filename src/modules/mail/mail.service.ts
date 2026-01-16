@@ -1,10 +1,10 @@
 // src/mail/mail.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { createTransport, Transporter } from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: Transporter;
 
   constructor() {
     // SMTP Configuration
@@ -20,7 +20,7 @@ export class MailService {
       );
     }
 
-    this.transporter = nodemailer.createTransport({
+    this.transporter = createTransport({
       host: smtpHost,
       port: smtpPort,
       secure: smtpSecure, // true for 465, false for other ports
@@ -28,10 +28,19 @@ export class MailService {
         user: smtpUser,
         pass: smtpPassword,
       },
-      // For Gmail and some providers, you may need to set:
-      // tls: {
-      //   rejectUnauthorized: false
-      // }
+      // Connection timeout settings for cloud platforms
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000, // 30 seconds
+      socketTimeout: 60000, // 60 seconds
+      // TLS configuration for better compatibility
+      tls: {
+        rejectUnauthorized: false, // Accept self-signed certificates (needed for some providers)
+        ciphers: 'SSLv3', // Use SSLv3 for compatibility
+      },
+      // Retry configuration
+      pool: false, // Disable connection pooling (can cause issues on cloud platforms)
+      maxConnections: 1,
+      maxMessages: 1,
     });
   }
 
