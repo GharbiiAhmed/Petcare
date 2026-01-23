@@ -91,33 +91,46 @@ export class SalonsService {
   }
 
   async findOne(id: string): Promise<any> {
+    // First, check if user exists and has salon role
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    if (user.role !== 'salon') {
+      throw new NotFoundException(`User with ID ${id} is not a salon`);
+    }
+
+    // Try to find salon record
     const salon = await this.salonModel
       .findOne({ user: id })
       .populate('user')
       .exec();
-    if (!salon) {
-      throw new NotFoundException(`Salon with ID ${id} not found`);
-    }
-    const user = salon.user as unknown as UserDocument;
-    if (!user || !('_id' in user)) {
-      throw new NotFoundException('User not populated correctly');
-    }
-    // Convert Mongoose document to plain object to ensure all fields are serialized
+
+    // Convert user to plain object
     const userObj = (user as any).toObject
       ? (user as any).toObject({ virtuals: true })
       : JSON.parse(JSON.stringify(user));
-    // Merge all salon fields into User object for client consumption
-    userObj.salonName = salon.salonName;
-    userObj.salonAddress = salon.salonAddress;
-    userObj.salonServices = salon.services;
-    userObj.salonYearsOfExperience = salon.yearsOfExperience;
-    userObj.salonBio = salon.bio;
-    userObj.salonPricing = salon.pricing
-      ? Object.fromEntries(salon.pricing)
-      : undefined;
-    // Use salon's latitude/longitude if available, otherwise keep user's
-    if (salon.latitude !== undefined) userObj.latitude = salon.latitude;
-    if (salon.longitude !== undefined) userObj.longitude = salon.longitude;
+
+    // If salon record exists, merge salon fields
+    if (salon) {
+      const salonUser = salon.user as unknown as UserDocument;
+      if (salonUser && '_id' in salonUser) {
+        // Merge all salon fields into User object for client consumption
+        userObj.salonName = salon.salonName;
+        userObj.salonAddress = salon.salonAddress;
+        userObj.salonServices = salon.services;
+        userObj.salonYearsOfExperience = salon.yearsOfExperience;
+        userObj.salonBio = salon.bio;
+        userObj.salonPricing = salon.pricing
+          ? Object.fromEntries(salon.pricing)
+          : undefined;
+        // Use salon's latitude/longitude if available, otherwise keep user's
+        if (salon.latitude !== undefined) userObj.latitude = salon.latitude;
+        if (salon.longitude !== undefined) userObj.longitude = salon.longitude;
+      }
+    }
+    // If no salon record exists, return user data with empty salon fields
+    // This allows the profile screen to work even if salon hasn't completed their profile
     return userObj;
   }
 
