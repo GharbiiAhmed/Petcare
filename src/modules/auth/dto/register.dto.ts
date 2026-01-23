@@ -20,6 +20,9 @@ export class RegisterDto {
   @MinLength(6)
   password: string;
 
-  @IsEnum(UserRole)
+  @IsEnum(UserRole, {
+    message:
+      'role must be one of the following values: owner, vet, admin, sitter, trainer, salon',
+  })
   role: UserRole;
 }
