@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UserRole } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -17,9 +17,12 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     // Determine role approval status based on role
-    // Vet and trainer require admin approval, others are auto-approved
+    // Vet and trainer require admin approval, others (owner, sitter, salon, admin) are auto-approved
     let roleApprovalStatus = 'approved';
-    if (createUserDto.role === 'vet' || createUserDto.role === 'trainer') {
+    if (
+      createUserDto.role === UserRole.VET ||
+      createUserDto.role === UserRole.TRAINER
+    ) {
       roleApprovalStatus = 'pending';
     }
 
@@ -27,7 +30,8 @@ export class UsersService {
       ...createUserDto,
       balance: createUserDto.balance ?? 0,
       isVerified: createUserDto.isVerified ?? false,
-      roleApprovalStatus: createUserDto.roleApprovalStatus ?? roleApprovalStatus,
+      roleApprovalStatus:
+        createUserDto.roleApprovalStatus ?? roleApprovalStatus,
     });
     return createdUser.save();
   }

@@ -11,8 +11,8 @@ export class CreateBookingDto {
   @IsString()
   providerId: string; // Vet or Sitter ID
 
-  @IsEnum(['vet', 'sitter'])
-  providerType: 'vet' | 'sitter';
+  @IsEnum(['vet', 'sitter', 'salon'])
+  providerType: 'vet' | 'sitter' | 'salon';
 
   @IsString()
   @IsOptional()

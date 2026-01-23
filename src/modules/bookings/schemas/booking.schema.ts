@@ -11,8 +11,8 @@ export class Booking {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   provider: Types.ObjectId; // Vet or Pet Sitter who will provide the service
 
-  @Prop({ required: true, type: String, enum: ['vet', 'sitter'] })
-  providerType: string; // 'vet' or 'sitter'
+  @Prop({ required: true, type: String, enum: ['vet', 'sitter', 'salon'] })
+  providerType: string; // 'vet', 'sitter', or 'salon'
 
   @Prop({ type: Types.ObjectId, ref: 'Pet' })
   pet?: Types.ObjectId; // Optional: specific pet for the booking

@@ -37,11 +37,11 @@ export class User extends Document {
   // By default, every user is an "owner"
   @Prop({
     default: 'owner',
-    enum: ['owner', 'vet', 'admin', 'sitter', 'trainer'],
+    enum: ['owner', 'vet', 'admin', 'sitter', 'trainer', 'salon'],
   })
   role: string;
 
-  // Role approval status (for vet and trainer - requires admin approval)
+  // Role approval status (for vet and trainer - requires admin approval; owner, sitter, salon, admin are auto-approved)
   @Prop({ default: 'approved', enum: ['pending', 'approved', 'rejected'] })
   roleApprovalStatus: string;
 

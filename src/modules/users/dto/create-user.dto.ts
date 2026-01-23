@@ -18,6 +18,7 @@ export enum UserRole {
   ADMIN = 'admin',
   SITTER = 'sitter',
   TRAINER = 'trainer',
+  SALON = 'salon',
 }
 
 export class CreateUserDto {
@@ -38,7 +39,7 @@ export class CreateUserDto {
   // Role & account state
   @IsOptional()
   @IsEnum(UserRole, {
-    message: 'Role must be one of: owner, vet, admin, sitter, trainer',
+    message: 'Role must be one of: owner, vet, admin, sitter, trainer, salon',
   })
   role?: UserRole = UserRole.OWNER;
 

@@ -18,6 +18,7 @@ import { FcmModule } from './modules/fcm/fcm.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { CommunityModule } from './modules/community/community.module';
 import { TrainersModule } from './modules/trainers/trainers.module';
+import { SalonsModule } from './modules/salons/salons.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 import { AdoptionModule } from './modules/adoption/adoption.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -41,6 +42,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
     ChatbotModule,
     CommunityModule,
     TrainersModule,
+    SalonsModule,
     MarketplaceModule,
     AdoptionModule,
     SubscriptionsModule,
