@@ -1,47 +1,16 @@
 // src/mail/mail.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { createTransport, Transporter } from 'nodemailer';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import sgMail = require('@sendgrid/mail');
 
 @Injectable()
 export class MailService {
-  private transporter: Transporter;
-
   constructor() {
-    // SMTP Configuration
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPassword = process.env.SMTP_PASSWORD;
-    const smtpSecure = process.env.SMTP_SECURE === 'true'; // true for 465, false for other ports
-
-    if (!smtpHost || !smtpUser || !smtpPassword) {
-      throw new Error(
-        'SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USER, and SMTP_PASSWORD environment variables.',
-      );
+    const apiKey = process.env.SENDGRID_API_KEY;
+    if (!apiKey) {
+      throw new Error('SENDGRID_API_KEY is not defined');
     }
-
-    this.transporter = createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure, // true for 465, false for other ports
-      auth: {
-        user: smtpUser,
-        pass: smtpPassword,
-      },
-      // Connection timeout settings for cloud platforms
-      connectionTimeout: 60000, // 60 seconds
-      greetingTimeout: 30000, // 30 seconds
-      socketTimeout: 60000, // 60 seconds
-      // TLS configuration for better compatibility
-      tls: {
-        rejectUnauthorized: false, // Accept self-signed certificates (needed for some providers)
-        ciphers: 'SSLv3', // Use SSLv3 for compatibility
-      },
-      // Retry configuration
-      pool: false, // Disable connection pooling (can cause issues on cloud platforms)
-      maxConnections: 1,
-      maxMessages: 1,
-    });
+    sgMail.setApiKey(apiKey);
   }
 
   async sendVerificationCode(email: string, code: string): Promise<void> {
@@ -50,9 +19,9 @@ export class MailService {
       throw new Error('MAIL_FROM is not defined');
     }
 
-    const mailOptions = {
-      from: from,
+    const msg = {
       to: email,
+      from: from,
       subject: 'Verify your email address',
       html: `
         <h2>Your verification code</h2>
@@ -63,8 +32,8 @@ export class MailService {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log(`Verification email sent to ${email}`, info.messageId);
+      await sgMail.send(msg);
+      console.log(`Verification email sent to ${email}`);
     } catch (err) {
       console.error('Failed to send verification email:', err);
       throw new InternalServerErrorException(
