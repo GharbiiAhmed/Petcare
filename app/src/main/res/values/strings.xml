@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Petcare</string>
+    <string name="mapbox_access_token">pk.eyJ1Ijoibm91YWFyIiwiYSI6ImNtaTk5eWg2MzA5dGcyeHM0OHpuaHk3YjkifQ.M9uz87UkI-v_0BdCGdvsAw</string>
+</resources>
