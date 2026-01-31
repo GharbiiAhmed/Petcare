@@ -41,6 +41,7 @@ export class MarketplaceService {
   ): Promise<MarketplaceListingDocument> {
     const listing = new this.listingModel({
       seller: new Types.ObjectId(sellerId),
+      contactPhone: createListingDto.contactPhone,
       petName: createListingDto.petName,
       species: createListingDto.species,
       breed: createListingDto.breed,
@@ -64,6 +65,19 @@ export class MarketplaceService {
     return await listing.save();
   }
 
+  /** Merge seller's profile phone into contactPhone so API always returns one contact number when available */
+  private mergeContactPhone(listing: any): any {
+    const obj = listing?.toObject ? listing.toObject() : listing;
+    if (!obj) return obj;
+    const sellerPhone =
+      obj.seller && typeof obj.seller === 'object' && obj.seller.phoneNumber
+        ? obj.seller.phoneNumber
+        : null;
+    obj.contactPhone =
+      (obj.contactPhone && String(obj.contactPhone).trim()) || sellerPhone || undefined;
+    return obj;
+  }
+
   async findAllListings(status?: ListingStatus): Promise<any[]> {
     const query: any = {};
     if (status) {
@@ -77,10 +91,10 @@ export class MarketplaceService {
       .sort({ createdAt: -1 })
       .exec();
 
-    return listings;
+    return listings.map((l) => this.mergeContactPhone(l));
   }
 
-  async findListingById(listingId: string): Promise<MarketplaceListingDocument> {
+  async findListingById(listingId: string): Promise<any> {
     const listing = await this.listingModel
       .findByIdAndUpdate(listingId, { $inc: { views: 1 } }, { new: true })
       .populate('seller', 'name email phoneNumber profileImage location')
@@ -91,7 +105,7 @@ export class MarketplaceService {
       throw new NotFoundException(`Listing with ID ${listingId} not found`);
     }
 
-    return listing;
+    return this.mergeContactPhone(listing);
   }
 
   async findListingsByUser(
@@ -192,11 +206,12 @@ export class MarketplaceService {
       searchQuery.price = { $gte: minPrice };
     }
 
-    return await this.listingModel
+    const listings = await this.listingModel
       .find(searchQuery)
       .populate('seller', 'name email phoneNumber profileImage location')
       .sort({ createdAt: -1 })
       .exec();
+    return listings.map((l) => this.mergeContactPhone(l));
   }
 
   async toggleLike(

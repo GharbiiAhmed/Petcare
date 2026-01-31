@@ -41,6 +41,7 @@ export class AdoptionService {
   ): Promise<AdoptionListingDocument> {
     const listing = new this.listingModel({
       rescuer: new Types.ObjectId(rescuerId),
+      contactPhone: createListingDto.contactPhone,
       petName: createListingDto.petName,
       species: createListingDto.species,
       breed: createListingDto.breed,
@@ -64,25 +65,37 @@ export class AdoptionService {
     return await listing.save();
   }
 
+  /** Merge rescuer's profile phone into contactPhone so API always returns one contact number when available */
+  private mergeContactPhone(listing: any): any {
+    const obj = listing?.toObject ? listing.toObject() : listing;
+    if (!obj) return obj;
+    const rescuerPhone =
+      obj.rescuer && typeof obj.rescuer === 'object' && obj.rescuer.phoneNumber
+        ? obj.rescuer.phoneNumber
+        : null;
+    obj.contactPhone =
+      (obj.contactPhone && String(obj.contactPhone).trim()) || rescuerPhone || undefined;
+    return obj;
+  }
+
   async findAllListings(
     status?: AdoptionListingStatus,
-  ): Promise<AdoptionListingDocument[]> {
+  ): Promise<any[]> {
     const query: any = {};
     if (status) {
       query.status = status;
     }
 
-    return await this.listingModel
+    const listings = await this.listingModel
       .find(query)
       .populate('rescuer', 'name email phoneNumber profileImage location')
       .populate('adoptedBy', 'name email phoneNumber profileImage')
       .sort({ createdAt: -1 })
       .exec();
+    return listings.map((l) => this.mergeContactPhone(l));
   }
 
-  async findListingById(
-    listingId: string,
-  ): Promise<AdoptionListingDocument> {
+  async findListingById(listingId: string): Promise<any> {
     const listing = await this.listingModel
       .findByIdAndUpdate(listingId, { $inc: { views: 1 } }, { new: true })
       .populate('rescuer', 'name email phoneNumber profileImage location')
@@ -93,7 +106,7 @@ export class AdoptionService {
       throw new NotFoundException(`Listing with ID ${listingId} not found`);
     }
 
-    return listing;
+    return this.mergeContactPhone(listing);
   }
 
   async findListingsByRescuer(
@@ -184,11 +197,12 @@ export class AdoptionService {
       searchQuery.species = { $regex: species, $options: 'i' };
     }
 
-    return await this.listingModel
+    const listings = await this.listingModel
       .find(searchQuery)
       .populate('rescuer', 'name email phoneNumber profileImage location')
       .sort({ createdAt: -1 })
       .exec();
+    return listings.map((l) => this.mergeContactPhone(l));
   }
 
   async toggleLike(
