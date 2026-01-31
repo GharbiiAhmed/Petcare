@@ -58,6 +58,10 @@ export class CreateMarketplaceListingDto {
   location?: string;
 
   @IsOptional()
+  @IsString()
+  contactPhone?: string;
+
+  @IsOptional()
   @IsLatitude()
   latitude?: number;
 

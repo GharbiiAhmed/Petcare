@@ -54,6 +54,10 @@ export class CreateAdoptionListingDto {
   location?: string;
 
   @IsOptional()
+  @IsString()
+  contactPhone?: string;
+
+  @IsOptional()
   @IsLatitude()
   latitude?: number;
 

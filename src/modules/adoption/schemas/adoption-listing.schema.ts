@@ -20,6 +20,10 @@ export class AdoptionListing {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   rescuer: Types.ObjectId;
 
+  /** Contact phone for this listing (for WhatsApp); overrides rescuer profile phone when set */
+  @Prop()
+  contactPhone?: string;
+
   // Pet information
   @Prop({ required: true })
   petName: string;
